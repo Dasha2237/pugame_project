@@ -10,6 +10,7 @@ HEIGHT = 500
 screen = pygame.display.set_mode([WIDTH, HEIGHT])
 pygame.key.set_repeat(200, 70)
 
+
 def load_image(name, colorkey=None):
     fullname = os.path.join('data', name)
     try:
@@ -29,7 +30,38 @@ def terminate():
     pygame.quit()
     sys.exit()
  
+dragon4 = pygame.sprite.Group()
+
+class AnimatedSprite1(pygame.sprite.Sprite):
+    def __init__(self, sheet, columns, rows, x, y):
+        super().__init__(dragon4)
+        self.frames = []
+        self.cut_sheet(sheet, columns, rows)
+        self.cur_frame = 0
+        self.image = self.frames[self.cur_frame]
+        self.rect = self.rect.move(x, y)
  
+    def cut_sheet(self, sheet, columns, rows):
+        self.rect = pygame.Rect(0, 0, sheet.get_width() // columns,
+                                sheet.get_height() // rows)
+        for j in range(rows):
+            for i in range(columns):
+                frame_location = (self.rect.w * i, self.rect.h * j)
+                self.frames.append(sheet.subsurface(pygame.Rect(
+                    frame_location, self.rect.size)))
+ 
+    def update(self):
+        global q_in
+        if q_in == 5:
+            self.cur_frame = (self.cur_frame + 1) % len(self.frames)
+            self.image = self.frames[self.cur_frame]
+            q_in = 0
+        q_in += 1
+
+        
+dragon2 = AnimatedSprite1(load_image("New Piskel_5.png"), 5, 2, 20, 0)
+dragon3 = AnimatedSprite1(load_image("New Piskel_5.png"), 5, 2, 400, 0)
+        
 def start_screen():
     intro_text = [" ПРОЙДИ ЛАБИРИНТ "," "," ",
                   "Закрасьте белый коридор",
@@ -45,9 +77,14 @@ def start_screen():
         intro_rect = string_rendered.get_rect()
         text_coord += 30
         intro_rect.top = text_coord
-        intro_rect.x = 140
+        intro_rect.x = 160
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
+    global dragon4
+    dragon4.update()
+    dragon4.draw(screen)
+
+        
 def win():
     intro_text = ["YOU",
                   "WIN!!!"]
@@ -64,6 +101,31 @@ def win():
         intro_rect.x = 250
         text_coord += intro_rect.height
         screen.blit(string_rendered, intro_rect)
+    intro_text1 = ["WOW",
+                  "WOW"]
+    font = pygame.font.Font(None, 50)
+    text_coord = 60
+    for line in intro_text1:
+        string_rendered = font.render(line, 1, pygame.Color('blue'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 30
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+    intro_text2 = ["SUPER!!!",
+                  "COOL"]
+    font = pygame.font.Font(None, 50)
+    text_coord = 60
+    for line in intro_text2:
+        string_rendered = font.render(line, 1, pygame.Color('purple'))
+        intro_rect = string_rendered.get_rect()
+        text_coord += 10
+        intro_rect.top = text_coord
+        intro_rect.x = 485
+        text_coord += intro_rect.height
+        screen.blit(string_rendered, intro_rect)
+
 
 def load_level(filename):
     #filename = "C:\Users\Student\AppData\Local\Programs\Python\Python37\Mikhaylova\map_1"
@@ -77,6 +139,7 @@ def load_level(filename):
     # дополняем каждую строку пустыми клетками ('.')    
     return list(map(lambda x: x.ljust(max_width, '.'), level_map))
 
+
 tile_images = {
     'wall': load_image("wall.jpg"),
     'empty': load_image('empty.jpg')
@@ -89,6 +152,8 @@ colors = [(249,132,229), (102,0,255), (11,218,81), (255,215,0)]
 levels = ["1","2","3","4"]
 q_in = 0
 dragon = pygame.sprite.Group()
+
+
 class AnimatedSprite(pygame.sprite.Sprite):
     def __init__(self, sheet, columns, rows, x, y):
         super().__init__(dragon)
@@ -109,14 +174,16 @@ class AnimatedSprite(pygame.sprite.Sprite):
  
     def update(self):
         global q_in
-        if q_in == 60:
+        if q_in == 5:
             self.cur_frame = (self.cur_frame + 1) % len(self.frames)
             self.image = self.frames[self.cur_frame]
             q_in = 0
         q_in += 1
 
-
+        
 dragon1 = AnimatedSprite(load_image("New Piskel.png"), 4, 2, 180, 120)
+color_y = 60
+level_y = 60
 
 def menu():
  
@@ -149,36 +216,51 @@ def menu():
     text_h = text.get_height()
     screen.blit(text, (text_x, text_y))
     pygame.draw.rect(screen, (0, 0, 0), (435, 0,
-                                           215, 60), 3)
+                                          215, 60), 3)
+    global level_y
+    global color_y
+    
     for i in range(4):
         pygame.draw.rect(screen, (0, 0, 0), (0, 60 + 110 * i,
                                            220, 110), 3)
+    for i in range(4):
         pygame.draw.rect(screen, (0, 0, 0), (435, 60 + 110 * i,
                                            215, 110), 3)
+    pygame.draw.rect(screen, (255, 255, 255), (2, color_y,
+                                           215, 110), 0)
+    pygame.draw.rect(screen, (255, 255, 255), (435, level_y,
+                                           215, 110), 0)
+    for i in range(4):
         pygame.draw.circle(screen, colors[i],
                            (110,115 + 110 *i), 50)
+    for i in range(4):
         text = font.render(levels[i], 1, (0, 0, 0))
         
         screen.blit(text, (540, 95 + 110* i))
+        
+    pygame.draw.rect(screen, (240, 240, 240), (215, 60,
+                                           220, 110), 3)
+    pygame.draw.polygon(screen, (0, 255, 255),[(265, 80), (265,150), (385, 115)], 0)
+    
     global dragon
     dragon.update()
     dragon.draw(screen)
         
     
-        
-
-
 class Tile(pygame.sprite.Sprite):
     def __init__(self, tile_type, pos_x, pos_y):
         super().__init__(tiles_group, all_sprites)
         self.image = tile_images[tile_type]
         self.rect = self.image.get_rect().move(
             tile_width * pos_x, tile_height * pos_y)
+
  
 radius = 20
 #color_boll = 'yellow'
 color_boll = (249,132,229)
 kol_zakr = 0
+
+
 class Player(pygame.sprite.Sprite):
     def __init__(self, pos_x, pos_y):
         super().__init__(player_group, all_sprites)
@@ -191,16 +273,14 @@ class Player(pygame.sprite.Sprite):
                            (radius +  6, radius + 6), radius)
         self.rect = self.image.get_rect().move(
             tile_width * pos_x , tile_height * pos_y )
+        
     def peredvighenie(self,number,x,y):
         global n
         global zakr
         if number == 1 :
-            print(y-1,x-2)
-            print(n[y-1][x-2])
             if n[y-1][x-2] != '#':
                 player.rect.x = player.rect.x - 50
                 x = x-1
-                print(zakr)
                 zakr[y-1][x-1] = 1
                 tiles[y-1][x-1].image = load_image('way.jpeg')
                 w = 0
@@ -208,8 +288,6 @@ class Player(pygame.sprite.Sprite):
                 w = 1
             return x, w
         elif number == 2:
-            print(y-1,x)
-            print(n[y-1][x])
             if n[y-1][x] != '#':
                 player.rect.x = player.rect.x + 50
                 x = x+1
@@ -220,8 +298,6 @@ class Player(pygame.sprite.Sprite):
                 w = 1
             return x, w
         elif number == 3:
-            print(y-2,x-1)
-            print(n[y-2][x-1])
             if n[y-2][x-1] != '#':
                 player.rect.y = player.rect.y - 50
                 y = y-1
@@ -232,8 +308,6 @@ class Player(pygame.sprite.Sprite):
                 w = 1
             return y ,w
         elif number == 4:
-            print(y,x-1)
-            print(n[y][x-1])
             if n[y][x-1] != '#':
                 player.rect.y = player.rect.y + 50
                 y = y+1
@@ -243,12 +317,13 @@ class Player(pygame.sprite.Sprite):
             else:
                 w = 1
             return y, w
+
+        
 def ball_color(y):
     w = (y - 60)//110
     return w
 
 player = None
- 
 # группы спрайтов
 all_sprites = pygame.sprite.Group()
 tiles_group = pygame.sprite.Group()
@@ -256,6 +331,8 @@ player_group = pygame.sprite.Group()
 kol_pust = 0
 tiles = []
 zakr = []
+
+
 def generate_level(level):
     new_player, x, y = None, None, None
     global kol_pust,zakr,tiles
@@ -264,22 +341,36 @@ def generate_level(level):
         zakr.append([])
         for x in range(len(level[y])):
             if level[y][x] == '.':
-                tiles[y].append(Tile('empty', x, y))
-                zakr[y].append(0)
                 kol_pust += 1
-            elif level[y][x] == '#':
-                tiles[y].append(Tile('wall', x, y))
-                zakr[y].append(0)
             elif level[y][x] == '@':
-                tiles[y].append(Tile('empty', x, y))
-                zakr[y].append(0)
                 new_player = Player(x, y)
                 X = x + 1
                 Y = y + 1
-                print(X,Y)
+                
+    for y in range(len(level)):
+        tiles.append([])
+        for x in range(len(level[y])):
+            if level[y][x] == '.':
+                tiles[y].append(Tile('empty', x, y))
+            elif level[y][x] == '#':
+                tiles[y].append(Tile('wall', x, y))
+            elif level[y][x] == '@':
+                tiles[y].append(Tile('empty', x, y))
+
+    for y in range(len(level)):
+        zakr.append([])
+        for x in range(len(level[y])):
+            if level[y][x] == '.':
+                zakr[y].append(0)
+            elif level[y][x] == '#':
+                zakr[y].append(0)
+            elif level[y][x] == '@':
+                zakr[y].append(0)
                 
     # вернем игрока, а также размер поля в клетках            
     return new_player, X, Y
+
+
 stars = pygame.sprite.Group()
 GRAVITY = 10
 screen_rect = (0, 0,650,500)
@@ -325,7 +416,6 @@ def create_particles(position):
         Particle(position, random.choice(numbers), random.choice(numbers))
 
 
-
 a = 0
 d = 1
 clock = pygame.time.Clock();
@@ -333,21 +423,26 @@ levels_doc = ['map1.txt', 'map2.txt', 'map3.txt', 'map4.txt']
 pygame.mixer.init(22050,-16,2,4096)
 pygame.mixer.music.load("data\Kalimba.ogg")
 pygame.mixer.music.play(0,0.0)
+level = 'map1.txt'
+q_in = 5
 while True:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             terminate()
-        elif event.type == pygame.KEYDOWN or \
-             event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == pygame.MOUSEBUTTONDOWN:
             if a == 0  or a == 3:
+                q_in = 5
                 a = 4
             elif a == 4:
                 x1,y1 = event.pos
                 if x1 <= 215 :
                     color_boll = colors[ball_color(y1)]
+                    color_y = 60 + int(ball_color(y1)) * 110
                 if x1 >= 435:
-                    print(ball_color(y1))
+                    #print(ball_color(y1))
+                    level_y = 60 + int(ball_color(y1)) * 110
                     level = levels_doc[ball_color(y1)]
+                if x1 > 215 and x1 < 435:
                     a = 1
                     tiles = []
                     zakr = []
@@ -357,7 +452,7 @@ while True:
                     n = load_level(level)
                     num = 0
                     player, x, y = generate_level(m)
-                    print(x,y)
+                    #print(x,y)
                     d = 1
                     w = 1
                     
@@ -413,7 +508,6 @@ while True:
         stars.update()
         stars.draw(screen)
     if a == 4:
-        q_in = 60
         menu()
     pygame.display.flip()
-    clock.tick(50)
+    clock.tick(80)
